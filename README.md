@@ -31,10 +31,20 @@ Carregar dados no banco de dados (executar uma vez):
 Abra um terminal ou prompt de comando e navegue até o diretório de trabalho do projeto.
 Execute o comando: python pipeline.py
 Este script lerá os dados do arquivo CSV (IOT-temp.csv) e os carregará na tabela temperature_readings no banco de dados PostgreSQL.
+Alterar as colunas da tabela de room_id/id para room_id e out/in para location
+
+Foram criadas 3 Views:
+-- View para calcular a correlação entre temperatura e local 
+CREATE VIEW correlation_between_temp_and_location AS SELECT location, AVG(temp) AS average_temp, STDDEV(temp) AS stddev_temp FROM public.temperature_readings GROUP BY location; 
+-- View para identificar tendências de temperatura por local 
+CREATE VIEW temp_trends_by_location AS SELECT location, noted_date, AVG(temp) OVER (PARTITION BY location ORDER BY noted_date) AS moving_average FROM public.temperature_readings; 
+-- View para calcular a média de temperatura por hora do dia 
+CREATE VIEW average_temp_by_hour AS SELECT EXTRACT(HOUR FROM noted_date) AS hour, AVG(temp) AS average_temp FROM public.temperature_readings GROUP BY hour;
+
 Iniciar o dashboard:
 
 Execute o comando: streamlit run dashboard.py
-Isso abrirá o dashboard em seu navegador web padrão (geralmente em http://localhost:8501).
+Isso abrirá o dashboard em seu navegador web padrão (http://localhost:5432).
 O que o Dashboard Faz?
 Conecta-se ao banco de dados PostgreSQL para recuperar os dados de temperatura.
 Oferece três views selecionáveis:
@@ -42,6 +52,7 @@ Correlação entre temperatura e local: Mostra a média e o desvio padrão da te
 Tendência de temperatura por local: Visualiza a média móvel da temperatura ao longo do tempo para cada local.
 Média de temperatura por hora do dia: Exibe a variação da temperatura média ao longo de um dia (24 horas).
 Utiliza gráficos interativos para facilitar a visualização e análise dos dados.
+
 Views do Banco de Dados
 As views no banco de dados foram criadas para facilitar a consulta e análise dos dados:
 
